@@ -1,0 +1,20 @@
+{
+  "name": "Stop & Shoot",
+  "short_name": "Stop & Shoot",
+  "description": "Mark photo and travel spots hands-free, with nearby EV charging, gas, restrooms, weather and golden hour.",
+  "id": "./",
+  "start_url": "./?source=pwa",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#12161e",
+  "theme_color": "#12161e",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Mark this spot", "short_name": "Mark spot", "url": "./?mark=1", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] }
+  ]
+}
