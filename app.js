@@ -183,8 +183,14 @@ async function nrelEV(lat, lon) {
   });
 }
 async function nominatimNearby(lat, lon, amenity, kind) {
-  const d = 0.12, vb = [lon - d, lat + d, lon + d, lat - d].join(",");
-  const r = await fetchT(`https://nominatim.openstreetmap.org/search?format=jsonv2&amenity=${amenity}&viewbox=${vb}&bounded=1&limit=10&addressdetails=0`, {}, 12000);
+  const near = await nominatimBox(lat, lon, amenity, kind, 0.035);
+  if (near.length) return near;
+  await sleep(1100);
+  return nominatimBox(lat, lon, amenity, kind, 0.15);
+}
+async function nominatimBox(lat, lon, amenity, kind, d) {
+  const vb = [lon - d, lat + d, lon + d, lat - d].join(",");
+  const r = await fetchT(`https://nominatim.openstreetmap.org/search?format=jsonv2&amenity=${amenity}&viewbox=${vb}&bounded=1&limit=40&addressdetails=0`, {}, 12000);
   const j = await r.json();
   return j.map(x => ({ name: x.name || ({ ev: "EV charger", fuel: "Gas station", wc: "Restroom" }[kind]), lat: +x.lat, lon: +x.lon,
     addr: (x.display_name || "").split(",").slice(0, 3).join(","), facts: [], mi: miles(lat, lon, +x.lat, +x.lon), src: "OpenStreetMap (Nominatim)" }))
