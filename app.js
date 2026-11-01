@@ -151,10 +151,10 @@ nwr["amenity"="toilets"](around:8000,${lat},${lon});
 nwr["amenity"="parking"](around:800,${lat},${lon});
 );out center tags;`;
   let lastErr;
-  for (let round = 0; round < 2; round++) {
+  for (let round = 0; round < 1; round++) {
     for (const m of OVERPASS) {
       try {
-        const r = await fetchT(m, { method: "POST", body: "data=" + encodeURIComponent(q), headers: { "Content-Type": "application/x-www-form-urlencoded" } }, 20000);
+        const r = await fetchT(m, { method: "POST", body: "data=" + encodeURIComponent(q), headers: { "Content-Type": "application/x-www-form-urlencoded" } }, 12000);
         const j = await r.json(); if (!j.elements) throw new Error("bad response");
         const out = { ev: [], fuel: [], wc: [], parking: [] };
         for (const el of j.elements) {
@@ -166,7 +166,6 @@ nwr["amenity"="parking"](around:800,${lat},${lon});
         return out;
       } catch (err) { lastErr = err; }
     }
-    await sleep(1500);
   }
   throw lastErr || new Error("Overpass unavailable");
 }
@@ -221,19 +220,19 @@ async function enrich(id, force) {
   try { const w = await weather(lat, lon); updatePin(id, p => { p.weather = w; }); } catch (e) {}
   rerender(id);
   let out = { ev: [], fuel: [], wc: [], parking: [] }, errors = [], sources = [];
-  try { out = await overpass(lat, lon); sources.push("OpenStreetMap (Overpass)"); } catch (e) { errors.push("OpenStreetMap: " + e.message); }
-  try { const ev = await nrelEV(lat, lon); if (ev.length) { out.ev = ev.concat(out.ev.filter(o => !ev.some(n => miles(n.lat, n.lon, o.lat, o.lon) < 0.05))).sort((a, b) => a.mi - b.mi).slice(0, 3); sources.push("DOE AFDC"); } }
-  catch (e) { errors.push("DOE EV list: " + e.message); }
+  const mergeEV = (a, b) => a.concat(b.filter(o => !a.some(n => miles(n.lat, n.lon, o.lat, o.lon) < 0.05))).sort((x, y) => x.mi - y.mi).slice(0, 3);
+  try { const ev = await nrelEV(lat, lon); if (ev.length) { out.ev = ev; sources.push("U.S. DOE AFDC"); updatePin(id, p => { p.nearby = Object.assign({}, out, { status: "loading" }); }); rerender(id); } }
+  catch (e) { errors.push("DOE EV list"); }
+  try { const o = await overpass(lat, lon); o.ev = mergeEV(out.ev, o.ev); out = o; sources.push("OpenStreetMap (Overpass)"); } catch (e) { errors.push("OpenStreetMap Overpass (parking lots, full hours)"); }
   // Fallback for empty categories when Overpass failed (spaced to respect Nominatim's 1 req/sec policy)
   if (!sources.includes("OpenStreetMap (Overpass)")) {
     for (const [k, am] of [["fuel", "fuel"], ["wc", "toilets"], ["ev", "charging_station"]]) {
       if (out[k].length) continue;
       await sleep(1100);
-      try { out[k] = await nominatimNearby(lat, lon, am, k); if (out[k].length && !sources.includes("OSM Nominatim")) sources.push("OSM Nominatim"); } catch (e) {}
+      try { out[k] = await nominatimNearby(lat, lon, am, k); if (!sources.includes("OpenStreetMap (Nominatim)")) sources.push("OpenStreetMap (Nominatim)"); } catch (e) {}
     }
   }
-  const any = out.ev.length || out.fuel.length || out.wc.length;
-  updatePin(id, p => { p.nearby = Object.assign(out, { status: any || sources.length ? "ok" : "error", errors, sources, at: Date.now() }); });
+  updatePin(id, p => { p.nearby = Object.assign(out, { status: sources.length ? "ok" : "error", errors, sources, at: Date.now() }); });
   enriching.delete(id); rerender(id);
 }
 
@@ -315,7 +314,7 @@ function renderPin(id) {
   $("#backBtn").hidden = false;
   const s = sunTimes(new Date(), p.lat, p.lon), nb = p.nearby || {}, cs = cautions(p);
   const label = p.name || "Spot";
-  const status = nb.status === "loading" ? `<p class="warn">Looking up nearby places…</p>`
+  const status = nb.status === "loading" ? `<p class="warn">Looking up nearby places… (can take up to a minute on a weak signal)</p>`
     : nb.status === "offline" ? `<p class="warn">You're offline. The spot is saved; nearby info will load when you reconnect.</p>`
     : nb.status === "error" ? `<p class="warn">Couldn't load nearby places. The spot is still saved.</p>` : "";
   view.innerHTML = `
@@ -337,7 +336,7 @@ function renderPin(id) {
     <p class="small"><b>Parking rules aren't in any reliable public data.</b> Always confirm on posted signs (no-parking zones, hours, permits, towing, private property). Write what you see below.</p>
     <textarea id="parking" placeholder="e.g. 2-hr limit, free lot behind church, no stopping on shoulder">${esc(p.parking)}</textarea>
     <div class="row" style="margin-top:10px"><button class="btn acc" id="parkMic" data-label="🎤 Speak parking/cautions">🎤 Speak parking/cautions</button></div>
-    <h3>Nearby parking in OpenStreetMap</h3>${nb.parking ? poiList(nb.parking, p, "No mapped parking lots within ½ mile.") : `<p class="mut small">—</p>`}
+    <h3>Nearby parking in OpenStreetMap</h3>${nb.status === "ok" && (nb.sources || []).includes("OpenStreetMap (Overpass)") ? poiList(nb.parking, p, "No mapped parking lots within ½ mile.") : `<p class="mut small">${nb.status === "loading" ? "Loading…" : "Not loaded (needs the OpenStreetMap Overpass service). Tap Refresh below."}</p>`}
     <h3>Be aware right now</h3>${cs.length ? `<ul class="check">${cs.map(c => `<li>${esc(c)}</li>`).join("")}</ul>` : `<p class="mut small">Nothing flagged from weather, light, or GPS.</p>`}
     <h3>Every stop</h3><ul class="check small">
       <li>Pull fully off the road; shoulders are for emergencies in many states.</li>
@@ -354,10 +353,10 @@ function renderPin(id) {
     <p class="mut small">Times for today at this spot, shown in your phone's time zone. Calculated on the phone.</p></div>
 
   <div class="card"><h2>Nearby</h2>${status}
-    <h3>⚡ EV charging</h3>${nb.status === "ok" ? poiList(nb.ev, p, "None found within 10 miles.") : ""}
+    <h3>⚡ EV charging</h3>${nb.status === "ok" || (nb.ev && nb.ev.length) ? poiList(nb.ev, p, "None found within 10 miles.") : ""}
     <h3>⛽ Gas</h3>${nb.status === "ok" ? poiList(nb.fuel, p, "None found nearby.") : ""}
     <h3>🚻 Restroom</h3>${nb.status === "ok" ? poiList(nb.wc, p, "No public restroom mapped nearby. Gas stations and fast food are your best bet.") : ""}
-    ${nb.status === "ok" ? `<p class="mut small">From ${esc((nb.sources || []).join(", ") || "—")}, ${nb.at ? fmtTime(nb.at) : ""}. Hours and access aren't guaranteed; call ahead if it matters.${nb.errors && nb.errors.length ? "<br>Partial: " + nb.errors.map(esc).join("; ") : ""}</p>` : ""}
+    ${nb.status === "ok" ? `<p class="mut small">From ${esc((nb.sources || []).join(", ") || "—")}, ${nb.at ? fmtTime(nb.at) : ""}. Hours and access aren't guaranteed; call ahead if it matters.${nb.errors && nb.errors.length ? "<br>Didn't respond: " + nb.errors.map(esc).join("; ") + ". Tap Refresh to try again." : ""}</p>` : ""}
     <div class="row" style="margin-top:8px"><button class="btn" id="retry" ${nb.status === "loading" ? "disabled" : ""}>${nb.status === "error" || nb.status === "offline" ? "Retry" : "Refresh"}</button></div></div>
 
   <div class="card"><div class="row"><button class="btn" id="copyBtn">Copy coordinates</button><button class="btn bad" id="delBtn">Delete spot</button></div></div>`;
