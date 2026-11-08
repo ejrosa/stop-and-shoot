@@ -31,16 +31,7 @@ function updatePin(id, fn) {
 }
 if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
 
-// One real first pin, imported once (not fake data).
-if (!localStorage.getItem("sas.seeded")) {
-  const pins = loadPins();
-  if (!pins.some(p => p.id === "first-southpointe")) {
-    pins.push({ id: "first-southpointe", ts: Date.parse("2026-11-01T09:10:00Z"), lat: 33.02755, lon: -80.15110, acc: null,
-      name: "South Pointe, Summerville, SC", tags: ["Test"], note: "", parking: "", nearby: null, weather: null, place: null });
-    savePins(pins);
-  }
-  localStorage.setItem("sas.seeded", "1");
-}
+// New installs start empty. Pins already stored under sas.pins.v1 are not modified or deleted.
 
 /* ---------- helpers ---------- */
 function toast(msg, ms) { const t = $("#toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove("show"), ms || 2600); }
@@ -70,6 +61,7 @@ async function fetchT(url, opts, ms) {
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 /* ---------- sun (SunCalc-style formulas, computed on device) ---------- */
+/* SUN_BLOCK_START */
 const rad = Math.PI / 180, J1970 = 2440588, J2000 = 2451545, e = rad * 23.4397, J0 = 0.0009;
 const toDays = d => d.valueOf() / 86400000 - 0.5 + J1970 - J2000;
 const fromJ = j => new Date((j + 0.5 - J1970) * 86400000);
@@ -90,6 +82,7 @@ function sunTimes(date, lat, lon) {
   return { sunrise, sunset, solarNoon: fromJ(Jnoon), goldenMorningEnd: ghEndAM, goldenEveningStart: ghStartPM,
            blueMorning: [blueStartAM, blueMidAM], blueEvening: [blueMidPM, blueEndPM] };
 }
+/* SUN_BLOCK_END */
 
 /* ---------- geolocation ---------- */
 let lastFix = null, watchId = null;
@@ -307,7 +300,7 @@ function renderHome() {
     <button class="btn" data-exp="gpx">GPX</button><button class="btn" data-exp="csv">CSV</button><button class="btn" data-exp="json">JSON</button>
     <label class="btn" style="cursor:pointer">Import<input type="file" id="imp" accept=".json,application/json" hidden></label></div>
     <p class="mut small">GPX opens in most map apps. JSON is a full backup you can import on another phone or browser.</p></div>
-  <p class="mut small" style="text-align:center">${esc(APP_NAME)} v${esc(CFG.VERSION)} · Data stays on this phone · Map data © OpenStreetMap contributors · EV data: U.S. DOE AFDC · Weather: Open-Meteo</p>`;
+  <p class="mut small" style="text-align:center">${esc(APP_NAME)} v${esc(CFG.VERSION)} · Spots stay on this phone · Lookups send a spot's coordinates to the services named on that spot · Map data © OpenStreetMap contributors · EV data: U.S. DOE AFDC · Weather: Open-Meteo</p>`;
   const pre = new Set();
   $("#markBtn").onclick = () => markSpot({ tags: [...pre] });
   view.querySelectorAll("#preTags .chip").forEach(c => c.onclick = () => { const t = c.dataset.t; pre.has(t) ? pre.delete(t) : pre.add(t); c.classList.toggle("sel"); buzz(20); });
@@ -402,7 +395,8 @@ function renderHelp() {
     <ol class="steps"><li>Install the app (step 1). Long-press its icon → drag <b>Mark spot</b> to your home screen for one-tap marking.</li>
       <li>Hands-free: say <b>"Hey Google, open ${esc(APP_NAME)}"</b>, or set up a Google Assistant routine that opens the link above.</li></ol></div>
   <div class="card"><h2>Good to know</h2><ul class="check small">
-    <li>Spots are saved on this phone only. Export a JSON backup now and then.</li>
+    <li>Spots are saved on this phone only. Export a JSON backup now and then. An installed iPhone app keeps its own list; move spots with JSON export and import.</li>
+    <li>Place, weather, and nearby lookups send that spot's coordinates to OpenStreetMap (Nominatim and Overpass), the U.S. DOE AFDC, and Open-Meteo. There is no Stop &amp; Shoot server.</li>
     <li>The app can't listen in the background or hear "Hey Grok". Use Siri or Google for wake words.</li>
     <li>Voice notes use your browser's speech recognition. If 🎤 doesn't work, tap the text box and use the keyboard mic.</li>
     <li>Saved spots work offline. Nearby places and weather need a connection, and they load automatically when you're back online.</li></ul></div>`;

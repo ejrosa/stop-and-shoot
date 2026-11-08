@@ -1,0 +1,14 @@
+// Provisional signing settings. Do not put a team id, certificate, or private API key in git.
+// Optional local overrides belong in ios/Config/Local.xcconfig, which is gitignored.
+
+PRODUCT_BUNDLE_IDENTIFIER = dev.provisional.stopandshoot
+MARKETING_VERSION = 0.1.0
+CURRENT_PROJECT_VERSION = 1
+NREL_API_KEY = DEMO_KEY
+CODE_SIGN_STYLE = Automatic
+DEVELOPMENT_TEAM =
+IPHONEOS_DEPLOYMENT_TARGET = 17.0
+SWIFT_VERSION = 5.0
+TARGETED_DEVICE_FAMILY = 1
+
+#include? "Local.xcconfig"
