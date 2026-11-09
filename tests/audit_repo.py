@@ -160,8 +160,13 @@ if "applicationName" not in read(IOS / "App/StopAndShootShortcuts.swift"):
     fail("Siri phrases omit the app name")
 if not (IOS / "StopAndShoot.xcodeproj/project.pbxproj").exists():
     fail("Xcode project missing")
-if "XCLocalSwiftPackageReference" not in read(IOS / "StopAndShoot.xcodeproj/project.pbxproj"):
+pbx = read(IOS / "StopAndShoot.xcodeproj/project.pbxproj")
+if "XCLocalSwiftPackageReference" not in pbx:
     fail("Xcode project does not reference the local package")
+if pbx.count("SDKROOT = iphoneos;") != 2:
+    fail("target build settings must not pin SDKROOT; simulator destinations need the platform default")
+if "SWIFT_STRICT_CONCURRENCY = minimal;" not in pbx:
+    fail("Swift concurrency mode is not pinned to minimal")
 
 icon = IOS / "App/Assets.xcassets/AppIcon.appiconset/AppIcon.png"
 blob = icon.read_bytes()

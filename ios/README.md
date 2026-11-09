@@ -72,13 +72,16 @@ swift test --package-path ios/Logic
 bash ios/Scripts/check.sh
 ```
 
-A simulator or device build:
+On the Mac that has Xcode and the phone, unzip the source archive and run:
 
 ```bash
-xcodebuild -project ios/StopAndShoot.xcodeproj -scheme StopAndShoot -destination 'platform=iOS Simulator,name=iPhone 16' build
+export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
+bash ios/Scripts/mac-device-test.sh
 ```
 
-Pick a simulator name that exists on that Mac. This environment has no macOS, Xcode, or iPhone, so that command was not run here.
+That script builds an unsigned simulator app first, launches it, and takes a screenshot. It installs on the attached iPhone only when `security find-identity` shows one Apple Development team. It prints team ids, not certificate names or keys. It does not tap Mark, archive, or upload to the App Store. If several teams are installed, run it again with `STOPANDSHOOT_TEAM_ID` set to one of the printed ids. The phone UDID can be overridden with `STOPANDSHOOT_DEVICE_UDID`.
+
+The target build settings do not pin `SDKROOT`, so a simulator destination is not forced onto the device SDK. Swift concurrency checking is pinned to minimal, which is the mode this source was written for. This Linux environment has no Xcode, so those Mac commands have not been run here.
 
 Version `0.1.0` (build 1) is the app marketing version. The website is versioned separately and is currently 1.0.1. Bump `MARKETING_VERSION` and `CURRENT_PROJECT_VERSION` in `ios/Config/Provisional.xcconfig`, and bump `AppIdentity.marketingVersion` in `ios/Logic/Sources/StopAndShootLogic/Identity.swift` so the Nominatim user agent matches.
 

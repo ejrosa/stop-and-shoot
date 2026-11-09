@@ -13,3 +13,5 @@ build/
 *.xcarchive
 ios/Logic/.build/
 ios/Config/Local.xcconfig
+.derived/
+mac-test-results/
