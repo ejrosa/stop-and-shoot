@@ -1,0 +1,17 @@
+.DS_Store
+xcuserdata/
+*.xcuserstate
+DerivedData/
+build/
+*.mobileprovision
+*.provisionprofile
+*.p12
+*.cer
+*.pem
+*.p8
+.env
+*.xcarchive
+ios/Logic/.build/
+ios/Config/Local.xcconfig
+.derived/
+mac-test-results/

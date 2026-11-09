@@ -1,0 +1,62 @@
+[
+  {
+    "name": "nyc-summer",
+    "iso": "2026-06-21T16:00:00.000Z",
+    "lat": 40.7128,
+    "lon": -74.006,
+    "sunrise": "2026-06-21T09:26:14.918Z",
+    "sunset": "2026-06-22T00:31:52.489Z",
+    "solarNoon": "2026-06-21T16:59:03.703Z",
+    "goldenMorningEnd": "2026-06-21T10:07:34.282Z",
+    "goldenEveningStart": "2026-06-21T23:50:33.125Z",
+    "blueMorningStart": "2026-06-21T08:52:49.238Z",
+    "blueMorningEnd": "2026-06-21T09:06:02.525Z",
+    "blueEveningStart": "2026-06-22T00:52:04.882Z",
+    "blueEveningEnd": "2026-06-22T01:05:18.169Z"
+  },
+  {
+    "name": "london-winter",
+    "iso": "2026-12-21T12:00:00.000Z",
+    "lat": 51.5074,
+    "lon": -0.1278,
+    "sunrise": "2026-12-21T08:05:00.140Z",
+    "sunset": "2026-12-21T15:54:30.978Z",
+    "solarNoon": "2026-12-21T11:59:45.559Z",
+    "goldenMorningEnd": "2026-12-21T09:06:41.714Z",
+    "goldenEveningStart": "2026-12-21T14:52:49.404Z",
+    "blueMorningStart": "2026-12-21T07:24:40.505Z",
+    "blueMorningEnd": "2026-12-21T07:39:51.130Z",
+    "blueEveningStart": "2026-12-21T16:19:39.988Z",
+    "blueEveningEnd": "2026-12-21T16:34:50.613Z"
+  },
+  {
+    "name": "equator-equinox",
+    "iso": "2026-03-20T12:00:00.000Z",
+    "lat": 0,
+    "lon": 0,
+    "sunrise": "2026-03-20T06:05:30.948Z",
+    "sunset": "2026-03-20T18:12:10.791Z",
+    "solarNoon": "2026-03-20T12:08:50.870Z",
+    "goldenMorningEnd": "2026-03-20T06:32:50.880Z",
+    "goldenEveningStart": "2026-03-20T17:44:50.859Z",
+    "blueMorningStart": "2026-03-20T05:44:50.859Z",
+    "blueMorningEnd": "2026-03-20T05:52:50.862Z",
+    "blueEveningStart": "2026-03-20T18:24:50.877Z",
+    "blueEveningEnd": "2026-03-20T18:32:50.880Z"
+  },
+  {
+    "name": "high-arctic",
+    "iso": "2026-01-15T00:00:00.000Z",
+    "lat": 89,
+    "lon": 0,
+    "sunrise": null,
+    "sunset": null,
+    "solarNoon": "2026-01-14T12:10:03.335Z",
+    "goldenMorningEnd": null,
+    "goldenEveningStart": null,
+    "blueMorningStart": null,
+    "blueMorningEnd": null,
+    "blueEveningStart": null,
+    "blueEveningEnd": null
+  }
+]
